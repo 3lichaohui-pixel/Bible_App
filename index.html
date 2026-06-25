@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>圣经讲章资料库｜创世记——从圣经神学视角解读</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-title">
+      <p class="eyebrow">Theological Sermon Library</p>
+      <h1>圣经讲章资料库</h1>
+      <p>长期维护的圣经讲章资料库</p>
+    </div>
+    <div class="header-actions" aria-label="阅读设置">
+      <button class="tool-button" id="decreaseFont" type="button" aria-label="字体缩小" title="字体缩小">A-</button>
+      <button class="tool-button" id="increaseFont" type="button" aria-label="字体放大" title="字体放大">A+</button>
+      <button class="tool-button" id="themeToggle" type="button" aria-label="切换夜间模式" title="切换夜间模式">月</button>
+    </div>
+  </header>
+
+  <main class="library-shell">
+    <aside class="library-nav" aria-label="书卷与章节目录">
+      <section class="nav-section">
+        <div class="section-label">书卷</div>
+        <div class="book-list" id="bookList"></div>
+      </section>
+
+      <section class="nav-section">
+        <div class="section-row">
+          <div class="section-label">章节目录</div>
+          <span class="chapter-total" id="chapterTotal">0章</span>
+        </div>
+        <div class="chapter-list" id="chapterList"></div>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <section class="book-cover" id="bookCover"></section>
+
+      <div class="search-bar">
+        <label for="searchInput">搜索</label>
+        <input id="searchInput" type="search" placeholder="搜索书卷、章节、标题、正文、作者、关键词">
+      </div>
+
+      <section class="content-view" id="contentView" aria-live="polite"></section>
+    </section>
+  </main>
+
+  <script src="data/library.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

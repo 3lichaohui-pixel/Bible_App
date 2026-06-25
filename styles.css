@@ -1,0 +1,476 @@
+﻿:root {
+  color-scheme: light;
+  --page: #f6f4ef;
+  --paper: #fffdfa;
+  --panel: #ffffff;
+  --panel-soft: #f0f5f2;
+  --ink: #202824;
+  --muted: #6b756f;
+  --line: #ded9cf;
+  --accent: #2f6f62;
+  --accent-deep: #204e45;
+  --accent-soft: #dfeee8;
+  --gold: #a66f22;
+  --shadow: 0 18px 50px rgba(54, 45, 32, 0.12);
+  --reader-font-size: 18px;
+  --reader-width: 820px;
+}
+
+body.dark {
+  color-scheme: dark;
+  --page: #111614;
+  --paper: #1a211f;
+  --panel: #1f2825;
+  --panel-soft: #26332f;
+  --ink: #eef4f1;
+  --muted: #a8b6b0;
+  --line: #35433e;
+  --accent: #79cdb7;
+  --accent-deep: #a9e6d7;
+  --accent-soft: #213d37;
+  --gold: #f0c36c;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(47, 111, 98, 0.08), transparent 260px),
+    var(--page);
+  color: var(--ink);
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 30px clamp(18px, 5vw, 64px) 24px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+}
+
+.site-title {
+  display: grid;
+  gap: 6px;
+}
+
+.eyebrow,
+.site-title h1,
+.site-title p,
+.book-cover p,
+.chapter-heading p,
+.sermon-meta p,
+.empty-state {
+  margin: 0;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.site-title h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  letter-spacing: 0;
+}
+
+.site-title p {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tool-button,
+.action-button,
+.book-button,
+.chapter-button,
+.sermon-card,
+.result-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.tool-button {
+  min-width: 44px;
+  min-height: 40px;
+  padding: 8px 11px;
+  font-weight: 800;
+}
+
+.tool-button:hover,
+.action-button:hover,
+.book-button:hover,
+.chapter-button:hover,
+.sermon-card:hover,
+.result-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.library-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 24px;
+  width: min(1400px, calc(100% - 32px));
+  margin: 24px auto 40px;
+}
+
+.library-nav {
+  position: sticky;
+  top: 16px;
+  align-self: start;
+  display: grid;
+  gap: 18px;
+}
+
+.nav-section,
+.book-cover,
+.content-view {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.nav-section {
+  padding: 18px;
+}
+
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-label {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.chapter-total {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.book-list,
+.chapter-list,
+.sermon-list,
+.result-list {
+  display: grid;
+  gap: 8px;
+}
+
+.book-button,
+.chapter-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 13px;
+  text-align: left;
+  font-weight: 900;
+}
+
+.book-button.active,
+.chapter-button.active,
+.action-button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+.count {
+  min-width: 38px;
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.workspace {
+  min-width: 0;
+}
+
+.book-cover {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: clamp(22px, 4vw, 38px);
+}
+
+.book-cover h2 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 44px);
+  letter-spacing: 0;
+}
+
+.book-cover .author {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.book-cover .description {
+  color: var(--muted);
+}
+
+.search-bar {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.search-bar label {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.search-bar input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+.content-view {
+  min-height: 620px;
+  padding: clamp(22px, 4vw, 44px);
+}
+
+.breadcrumb {
+  margin-bottom: 14px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.chapter-heading {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.chapter-heading h2,
+.search-heading h2,
+.sermon-title-block h2 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: 0;
+}
+
+.meta-line,
+.sermon-meta,
+.source-note,
+.empty-state {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.sermon-card,
+.result-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  width: 100%;
+  padding: 16px;
+  background: var(--panel-soft);
+  text-align: left;
+}
+
+.sermon-number {
+  grid-row: span 2;
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.sermon-card-title,
+.result-card-title {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.source-note,
+.result-excerpt {
+  grid-column: 2;
+  overflow-wrap: anywhere;
+}
+
+.sermon-view {
+  display: grid;
+  justify-items: center;
+}
+
+.sermon-inner {
+  width: 100%;
+  max-width: var(--reader-width);
+}
+
+.sermon-title-block {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sermon-title-block .chapter-name {
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.sermon-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.sermon-controls,
+.sermon-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.sermon-nav {
+  justify-content: space-between;
+}
+
+.action-button {
+  min-height: 40px;
+  padding: 9px 13px;
+  font-weight: 900;
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.sermon-content {
+  margin-top: 28px;
+  font-size: var(--reader-font-size);
+  line-height: 1.95;
+}
+
+.sermon-content h3 {
+  margin: 34px 0 10px;
+  color: var(--accent-deep);
+  font-size: calc(var(--reader-font-size) + 5px);
+  line-height: 1.45;
+}
+
+.sermon-content p {
+  margin: 0 0 20px;
+}
+
+.highlight {
+  border-radius: 4px;
+  background: #ffe08a;
+  color: #1f2933;
+  padding: 0 2px;
+}
+
+.search-heading {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 920px) {
+  .library-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .library-nav {
+    position: static;
+  }
+
+  .chapter-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .site-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+  }
+
+  .chapter-list {
+    grid-template-columns: 1fr;
+  }
+
+  .search-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .sermon-card,
+  .result-card {
+    grid-template-columns: 1fr;
+  }
+
+  .sermon-number,
+  .source-note,
+  .result-excerpt {
+    grid-column: 1;
+  }
+
+  .sermon-controls,
+  .sermon-nav {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .action-button {
+    width: 100%;
+  }
+}
