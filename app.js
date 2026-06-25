@@ -1,51 +1,52 @@
 ﻿const library = window.BIBLE_LIBRARY || { books: [] };
-
 const DEFAULT_AUTHOR = "李朝辉";
+
 const BOOK_META = {
   genesis: {
     coverTitle: "创世记——从圣经神学视角解读",
     author: DEFAULT_AUTHOR,
     description: "神的救赎计划，从创世记开始展开。"
+  },
+  "1corinthians": {
+    coverTitle: "哥林多前书",
+    author: DEFAULT_AUTHOR,
+    description: "在十字架、教会合一、恩赐与复活盼望中重建属灵生命。"
+  },
+  esther: {
+    coverTitle: "以斯帖记",
+    author: DEFAULT_AUTHOR,
+    description: "在隐藏的护理中看见神掌管历史，并呼召百姓承担使命。"
   }
 };
 
 const storageKeys = {
   theme: "bibleLibraryTheme",
   favorites: "bibleLibraryFavorites",
-  current: "bibleLibraryCurrent",
   fontSize: "bibleLibraryFontSize",
   readerWidth: "bibleLibraryReaderWidth"
 };
 
 const elements = {
-  bookCover: document.getElementById("bookCover"),
-  bookList: document.getElementById("bookList"),
-  chapterList: document.getElementById("chapterList"),
-  chapterTotal: document.getElementById("chapterTotal"),
   contentView: document.getElementById("contentView"),
   searchInput: document.getElementById("searchInput"),
   themeToggle: document.getElementById("themeToggle"),
   increaseFont: document.getElementById("increaseFont"),
-  decreaseFont: document.getElementById("decreaseFont")
+  decreaseFont: document.getElementById("decreaseFont"),
+  year: document.getElementById("year")
 };
 
-const savedCurrent = JSON.parse(localStorage.getItem(storageKeys.current) || "{}");
 const state = {
-  bookId: savedCurrent.bookId || library.books[0]?.id || "",
-  chapterNumber: Number(savedCurrent.chapterNumber) || 1,
-  sermonId: savedCurrent.sermonId || "",
-  view: savedCurrent.sermonId ? "sermon" : "chapter",
   query: "",
   favorites: new Set(JSON.parse(localStorage.getItem(storageKeys.favorites) || "[]")),
   fontSize: Number(localStorage.getItem(storageKeys.fontSize)) || 18,
   readerWidth: Number(localStorage.getItem(storageKeys.readerWidth)) || 820
 };
 
-function getBook(bookId = state.bookId) {
-  return library.books.find((book) => book.id === bookId) || library.books[0];
+function getBook(bookId) {
+  return library.books.find((book) => book.id === bookId);
 }
 
-function getBookMeta(book = getBook()) {
+function getBookMeta(book) {
   return BOOK_META[book?.id] || {
     coverTitle: book?.name || "圣经",
     author: DEFAULT_AUTHOR,
@@ -53,8 +54,7 @@ function getBookMeta(book = getBook()) {
   };
 }
 
-function getChapter(bookId = state.bookId, chapterNumber = state.chapterNumber) {
-  const book = getBook(bookId);
+function getChapter(book, chapterNumber) {
   return book?.chapters.find((chapter) => chapter.number === Number(chapterNumber));
 }
 
@@ -75,20 +75,8 @@ function getAllSermons() {
   );
 }
 
-function getCurrentSermonContext() {
-  return getAllSermons().find((item) => item.sermon.id === state.sermonId);
-}
-
-function saveCurrent() {
-  localStorage.setItem(storageKeys.current, JSON.stringify({
-    bookId: state.bookId,
-    chapterNumber: state.chapterNumber,
-    sermonId: state.sermonId
-  }));
-}
-
-function saveFavorites() {
-  localStorage.setItem(storageKeys.favorites, JSON.stringify([...state.favorites]));
+function getSermonContext(sermonId) {
+  return getAllSermons().find((item) => item.sermon.id === sermonId);
 }
 
 function escapeHtml(value) {
@@ -101,25 +89,25 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function stripHtml(html) {
+  const div = document.createElement("div");
+  div.innerHTML = html || "";
+  return div.textContent || div.innerText || "";
+}
+
 function highlightHtml(html) {
   const query = state.query.trim();
   if (!query) return html;
   return html.replace(new RegExp(`(${escapeRegExp(query)})`, "gi"), '<mark class="highlight">$1</mark>');
 }
 
-function getBookChapterTitle(book, chapter) {
-  return `${book.name}第${chapter.number}章`;
+function saveFavorites() {
+  localStorage.setItem(storageKeys.favorites, JSON.stringify([...state.favorites]));
 }
 
 function getReadingMinutes(sermon) {
   const text = sermon.text || stripHtml(sermon.content || "");
   return Math.max(1, Math.ceil(text.length / 500));
-}
-
-function stripHtml(html) {
-  const div = document.createElement("div");
-  div.innerHTML = html || "";
-  return div.textContent || div.innerText || "";
 }
 
 function formatDate(value) {
@@ -133,146 +121,174 @@ function getUpdatedDate(sermon) {
   return sermon.updatedAt || sermon.modifiedAt || library.generatedAt;
 }
 
-function setDocumentTitle(parts = []) {
-  const book = getBook();
-  const meta = getBookMeta(book);
-  const suffix = meta.coverTitle || book?.name || "";
-  const prefix = parts.filter(Boolean).join("｜");
-  document.title = prefix ? `圣经讲章资料库｜${prefix}` : `圣经讲章资料库｜${suffix}`;
+function setTitle(parts = []) {
+  const suffix = parts.filter(Boolean).join("｜") || "正式版";
+  document.title = `圣经讲章资料库｜${suffix}`;
 }
 
-function renderBookCover() {
-  const book = getBook();
-  const meta = getBookMeta(book);
-  elements.bookCover.innerHTML = `
-    <p class="eyebrow">书卷封面</p>
-    <h2>${escapeHtml(meta.coverTitle)}</h2>
-    <p class="author">作者：${escapeHtml(meta.author)}</p>
-    <p class="description">${escapeHtml(meta.description)}</p>
-  `;
-}
-
-function renderBooks() {
-  elements.bookList.innerHTML = "";
-
-  library.books.forEach((book) => {
-    const sermonCount = book.chapters.reduce((sum, chapter) => sum + chapter.sermons.length, 0);
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "book-button";
-    button.classList.toggle("active", book.id === state.bookId);
-    button.innerHTML = `<span>${escapeHtml(book.name)}</span><span class="count">${sermonCount}</span>`;
-    button.addEventListener("click", () => {
-      state.bookId = book.id;
-      state.chapterNumber = book.chapters[0]?.number || 1;
-      state.sermonId = "";
-      state.view = "chapter";
-      state.query = "";
-      elements.searchInput.value = "";
-      saveCurrent();
-      render();
-    });
-    elements.bookList.appendChild(button);
-  });
-}
-
-function renderChapters() {
-  const book = getBook();
-  elements.chapterList.innerHTML = "";
-  elements.chapterTotal.textContent = `${book?.chapters.length || 0}章`;
-
-  book?.chapters.forEach((chapter) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "chapter-button";
-    button.classList.toggle("active", chapter.number === state.chapterNumber);
-    button.innerHTML = `<span>第${String(chapter.number).padStart(2, "0")}章</span><span class="count">（${chapter.sermons.length}）</span>`;
-    button.addEventListener("click", () => {
-      state.chapterNumber = chapter.number;
-      state.sermonId = "";
-      state.view = "chapter";
-      state.query = "";
-      elements.searchInput.value = "";
-      saveCurrent();
-      render();
-    });
-    elements.chapterList.appendChild(button);
-  });
-}
-
-function renderChapterView() {
-  const book = getBook();
-  const chapter = getChapter();
-  if (!book || !chapter) {
-    elements.contentView.innerHTML = '<p class="empty-state">未找到章节。</p>';
-    return;
+function setHash(hash) {
+  if (window.location.hash !== hash) {
+    window.location.hash = hash;
+  } else {
+    render();
   }
+}
 
-  setDocumentTitle([getBookMeta(book).coverTitle, `第${chapter.number}章`]);
-  const sermonItems = chapter.sermons.map((sermon, index) => `
-    <button class="sermon-card" type="button" data-sermon-id="${sermon.id}">
-      <span class="sermon-number">${index + 1}</span>
-      <span class="sermon-card-title">${escapeHtml(sermon.title)}</span>
-      <span class="source-note">作者：${escapeHtml(sermon.author || getBookMeta(book).author)} · 阅读约 ${getReadingMinutes(sermon)} 分钟</span>
+function getRoute() {
+  const hash = decodeURIComponent(window.location.hash || "#/");
+  const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  if (!parts.length) return { view: "home" };
+  if (parts[0] === "book" && parts[1] && parts[2] === "chapter" && parts[3]) {
+    return { view: "chapter", bookId: parts[1], chapterNumber: Number(parts[3]) };
+  }
+  if (parts[0] === "book" && parts[1]) {
+    return { view: "book", bookId: parts[1] };
+  }
+  if (parts[0] === "sermon" && parts[1]) {
+    return { view: "sermon", sermonId: parts[1] };
+  }
+  return { view: "home" };
+}
+
+function renderBreadcrumb(items) {
+  return `<nav class="breadcrumb" aria-label="当前位置">${items.map((item) => (
+    item.href ? `<a href="${item.href}">${escapeHtml(item.label)}</a>` : `<span>${escapeHtml(item.label)}</span>`
+  )).join("<span>/</span>")}</nav>`;
+}
+
+function renderHome() {
+  setTitle(["正式版"]);
+  const books = library.books.map((book) => {
+    const chapterCount = book.chapters.filter((chapter) => chapter.sermons.length).length;
+    const sermonCount = book.chapters.reduce((sum, chapter) => sum + chapter.sermons.length, 0);
+    const meta = getBookMeta(book);
+    return `
+      <button class="book-card" type="button" data-book-id="${book.id}">
+        <span class="card-title">${escapeHtml(book.name)}</span>
+        <span>${escapeHtml(meta.description)}</span>
+        <span class="count-pill">${chapterCount}章 / ${sermonCount}篇</span>
+      </button>
+    `;
+  }).join("");
+
+  elements.contentView.innerHTML = `
+    <section class="hero">
+      <h1>圣经讲章资料库</h1>
+      <p>按书卷、章节和讲章整理的长期资料库。</p>
+    </section>
+    <section class="grid-list">${books}</section>
+  `;
+
+  elements.contentView.querySelectorAll("[data-book-id]").forEach((button) => {
+    button.addEventListener("click", () => setHash(`#/book/${button.dataset.bookId}`));
+  });
+}
+
+function renderBook(bookId) {
+  const book = getBook(bookId);
+  if (!book) return renderHome();
+  const meta = getBookMeta(book);
+  setTitle([meta.coverTitle]);
+
+  const chapters = book.chapters.map((chapter) => `
+    <button class="chapter-card" type="button" data-chapter-number="${chapter.number}">
+      <span class="card-title">第${String(chapter.number).padStart(2, "0")}章</span>
+      <span class="count-pill">${chapter.sermons.length}篇讲章</span>
     </button>
   `).join("");
 
   elements.contentView.innerHTML = `
-    <div class="breadcrumb">圣经 / ${escapeHtml(book.name)}</div>
-    <div class="chapter-heading">
-      <h2>${escapeHtml(getBookChapterTitle(book, chapter))}</h2>
-      <p class="meta-line">共${chapter.sermons.length}篇讲章</p>
-    </div>
-    <div class="sermon-list">
-      ${sermonItems || '<p class="empty-state">本章暂未导入讲章。</p>'}
-    </div>
+    ${renderBreadcrumb([{ label: "首页", href: "#/" }, { label: book.name }])}
+    <section class="book-cover">
+      <h1>${escapeHtml(meta.coverTitle)}</h1>
+      <p class="author">作者：${escapeHtml(meta.author)}</p>
+      <p>${escapeHtml(meta.description)}</p>
+    </section>
+    <section class="section-heading">
+      <h1>章节列表</h1>
+      <p>选择章节后，再查看该章所有讲章标题。</p>
+    </section>
+    <section class="grid-list">${chapters}</section>
   `;
 
-  elements.contentView.querySelectorAll("[data-sermon-id]").forEach((button) => {
-    button.addEventListener("click", () => openSermon(button.dataset.sermonId));
+  elements.contentView.querySelectorAll("[data-chapter-number]").forEach((button) => {
+    button.addEventListener("click", () => setHash(`#/book/${book.id}/chapter/${button.dataset.chapterNumber}`));
   });
 }
 
-function renderSermonView() {
-  const context = getCurrentSermonContext();
-  if (!context) {
-    state.sermonId = "";
-    state.view = "chapter";
-    renderChapterView();
-    return;
-  }
+function renderChapter(bookId, chapterNumber) {
+  const book = getBook(bookId);
+  const chapter = getChapter(book, chapterNumber);
+  if (!book || !chapter) return renderHome();
+  const meta = getBookMeta(book);
+  setTitle([book.name, `第${chapter.number}章`]);
 
+  const sermons = chapter.sermons.map((sermon, index) => `
+    <button class="sermon-card" type="button" data-sermon-id="${sermon.id}">
+      <span class="sermon-number">${index + 1}</span>
+      <span class="card-title">${escapeHtml(sermon.title)}</span>
+      <span class="source-note">作者：${escapeHtml(sermon.author || meta.author)} · 阅读约 ${getReadingMinutes(sermon)} 分钟</span>
+    </button>
+  `).join("");
+
+  elements.contentView.innerHTML = `
+    ${renderBreadcrumb([
+      { label: "首页", href: "#/" },
+      { label: book.name, href: `#/book/${book.id}` },
+      { label: `第${chapter.number}章` }
+    ])}
+    <section class="section-heading">
+      <h1>${escapeHtml(book.name)}第${chapter.number}章</h1>
+      <p>共${chapter.sermons.length}篇讲章</p>
+    </section>
+    <section class="sermon-list">
+      ${sermons || '<p class="empty-state">本章暂未导入讲章。</p>'}
+    </section>
+  `;
+
+  elements.contentView.querySelectorAll("[data-sermon-id]").forEach((button) => {
+    button.addEventListener("click", () => setHash(`#/sermon/${button.dataset.sermonId}`));
+  });
+}
+
+function renderSermon(sermonId) {
+  const context = getSermonContext(sermonId);
+  if (!context) return renderHome();
+  const { book, chapter, sermon } = context;
   const allSermons = getAllSermons();
-  const globalIndex = allSermons.findIndex((item) => item.sermon.id === context.sermon.id);
+  const globalIndex = allSermons.findIndex((item) => item.sermon.id === sermon.id);
   const previous = allSermons[globalIndex - 1];
   const next = allSermons[globalIndex + 1];
-  const isFavorite = state.favorites.has(context.sermon.id);
-  const updatedDate = formatDate(getUpdatedDate(context.sermon));
-
-  document.documentElement.style.setProperty("--reader-font-size", `${state.fontSize}px`);
-  document.documentElement.style.setProperty("--reader-width", `${state.readerWidth}px`);
-  setDocumentTitle([context.book.name, `第${context.chapter.number}章`, context.sermon.title]);
+  const isFavorite = state.favorites.has(sermon.id);
+  setTitle([book.name, `第${chapter.number}章`, sermon.title]);
 
   elements.contentView.innerHTML = `
     <article class="sermon-view">
       <div class="sermon-inner">
-        <div class="breadcrumb">圣经 / ${escapeHtml(context.book.name)} / 第${String(context.chapter.number).padStart(2, "0")}章</div>
+        ${renderBreadcrumb([
+          { label: "首页", href: "#/" },
+          { label: book.name, href: `#/book/${book.id}` },
+          { label: `第${chapter.number}章`, href: `#/book/${book.id}/chapter/${chapter.number}` },
+          { label: sermon.title }
+        ])}
         <header class="sermon-title-block">
-          <div class="chapter-name">${escapeHtml(getBookChapterTitle(context.book, context.chapter))}</div>
-          <h2>${escapeHtml(context.sermon.title)}</h2>
+          <div class="chapter-name">${escapeHtml(book.name)}第${chapter.number}章</div>
+          <h1>${escapeHtml(sermon.title)}</h1>
           <div class="sermon-meta">
-            <span>作者：${escapeHtml(context.sermon.author)}</span>
+            <span>作者：${escapeHtml(sermon.author || DEFAULT_AUTHOR)}</span>
             <span>${isFavorite ? "收藏★" : "收藏☆"}</span>
-            <span>阅读约 ${getReadingMinutes(context.sermon)} 分钟</span>
-            <span>最后更新：${updatedDate}</span>
+            <span>阅读约 ${getReadingMinutes(sermon)} 分钟</span>
+            <span>最后更新：${formatDate(getUpdatedDate(sermon))}</span>
           </div>
         </header>
 
         <div class="sermon-controls">
-          <button class="action-button" type="button" data-action="back">返回章节列表</button>
+          <button class="action-button" type="button" data-action="back">返回本章讲章列表</button>
           <button class="action-button ${isFavorite ? "active" : ""}" type="button" data-action="favorite">${isFavorite ? "取消收藏 ★" : "收藏 ☆"}</button>
+          <button class="action-button" type="button" data-action="share">分享本篇链接</button>
           <button class="action-button" type="button" data-action="narrow">窄版</button>
           <button class="action-button" type="button" data-action="wide">宽版</button>
+          <span class="share-status" id="shareStatus"></span>
         </div>
 
         <div class="sermon-nav">
@@ -280,17 +296,17 @@ function renderSermonView() {
           <button class="action-button" type="button" data-action="next" ${next ? "" : "disabled"}>下一篇</button>
         </div>
 
-        <div class="sermon-content">${highlightHtml(context.sermon.content)}</div>
+        <div class="sermon-content">${highlightHtml(sermon.content)}</div>
       </div>
     </article>
   `;
 
   elements.contentView.querySelectorAll("[data-action]").forEach((button) => {
-    button.addEventListener("click", () => handleSermonAction(button.dataset.action, previous, next));
+    button.addEventListener("click", () => handleSermonAction(button.dataset.action, context, previous, next));
   });
 }
 
-function renderSearchView() {
+function renderSearch() {
   const query = state.query.trim().toLowerCase();
   const matches = getAllSermons().filter(({ book, chapter, sermon }) => {
     const meta = getBookMeta(book);
@@ -308,76 +324,76 @@ function renderSearchView() {
     ].join(" ").toLowerCase();
     return haystack.includes(query);
   });
+  setTitle([`搜索：${state.query}`]);
 
-  setDocumentTitle([`搜索：${state.query}`]);
   elements.contentView.innerHTML = `
-    <div class="search-heading">
-      <h2>搜索结果</h2>
-      <p class="meta-line">“${escapeHtml(state.query)}” 共找到 ${matches.length} 篇讲章</p>
-    </div>
-    <div class="result-list">
+    ${renderBreadcrumb([{ label: "首页", href: "#/" }, { label: "搜索结果" }])}
+    <section class="search-heading">
+      <h1>搜索结果</h1>
+      <p>“${escapeHtml(state.query)}” 共找到 ${matches.length} 篇讲章</p>
+    </section>
+    <section class="result-list">
       ${matches.map(({ book, chapter, sermon }) => `
         <button class="result-card" type="button" data-sermon-id="${sermon.id}">
           <span class="sermon-number">${String(chapter.number).padStart(2, "0")}</span>
-          <span class="result-card-title">${escapeHtml(sermon.title)}</span>
-          <span class="source-note">${escapeHtml(book.name)} 第${chapter.number}章 · 作者：${escapeHtml(sermon.author)}</span>
+          <span class="card-title">${escapeHtml(sermon.title)}</span>
+          <span class="source-note">${escapeHtml(book.name)} 第${chapter.number}章 · 作者：${escapeHtml(sermon.author || DEFAULT_AUTHOR)}</span>
           <span class="result-excerpt">${escapeHtml((sermon.text || stripHtml(sermon.content || "")).slice(0, 140))}...</span>
         </button>
       `).join("") || '<p class="empty-state">没有找到匹配内容。</p>'}
-    </div>
+    </section>
   `;
 
   elements.contentView.querySelectorAll("[data-sermon-id]").forEach((button) => {
-    button.addEventListener("click", () => openSermon(button.dataset.sermonId));
+    button.addEventListener("click", () => {
+      state.query = "";
+      elements.searchInput.value = "";
+      setHash(`#/sermon/${button.dataset.sermonId}`);
+    });
   });
 }
 
-function handleSermonAction(action, previous, next) {
+async function handleSermonAction(action, context, previous, next) {
   if (action === "back") {
-    state.sermonId = "";
-    state.view = "chapter";
+    setHash(`#/book/${context.book.id}/chapter/${context.chapter.number}`);
+    return;
   }
-
   if (action === "favorite") {
-    if (state.favorites.has(state.sermonId)) {
-      state.favorites.delete(state.sermonId);
-    } else {
-      state.favorites.add(state.sermonId);
-    }
+    if (state.favorites.has(context.sermon.id)) state.favorites.delete(context.sermon.id);
+    else state.favorites.add(context.sermon.id);
     saveFavorites();
+    render();
+    return;
   }
-
-  if (action === "previous" && previous) setSermonContext(previous);
-  if (action === "next" && next) setSermonContext(next);
-
+  if (action === "share") {
+    const url = `${window.location.origin}${window.location.pathname}#/sermon/${context.sermon.id}`;
+    const status = document.getElementById("shareStatus");
+    try {
+      await navigator.clipboard.writeText(url);
+      status.textContent = "链接已复制";
+    } catch {
+      status.textContent = url;
+    }
+    return;
+  }
+  if (action === "previous" && previous) {
+    setHash(`#/sermon/${previous.sermon.id}`);
+    return;
+  }
+  if (action === "next" && next) {
+    setHash(`#/sermon/${next.sermon.id}`);
+    return;
+  }
   if (action === "narrow") {
     state.readerWidth = 740;
     localStorage.setItem(storageKeys.readerWidth, String(state.readerWidth));
+    applyReaderSettings();
   }
-
   if (action === "wide") {
     state.readerWidth = 920;
     localStorage.setItem(storageKeys.readerWidth, String(state.readerWidth));
+    applyReaderSettings();
   }
-
-  saveCurrent();
-  render();
-}
-
-function setSermonContext(context) {
-  state.bookId = context.book.id;
-  state.chapterNumber = context.chapter.number;
-  state.sermonId = context.sermon.id;
-  state.view = "sermon";
-}
-
-function openSermon(sermonId) {
-  const context = getAllSermons().find((item) => item.sermon.id === sermonId);
-  if (!context) return;
-  setSermonContext(context);
-  saveCurrent();
-  render();
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function applyTheme(theme) {
@@ -388,28 +404,27 @@ function applyTheme(theme) {
   localStorage.setItem(storageKeys.theme, theme);
 }
 
+function applyReaderSettings() {
+  document.documentElement.style.setProperty("--reader-font-size", `${state.fontSize}px`);
+  document.documentElement.style.setProperty("--reader-width", `${state.readerWidth}px`);
+}
+
 function changeFont(delta) {
   state.fontSize = Math.min(24, Math.max(15, state.fontSize + delta));
   localStorage.setItem(storageKeys.fontSize, String(state.fontSize));
-  document.documentElement.style.setProperty("--reader-font-size", `${state.fontSize}px`);
-  if (state.view === "sermon") renderSermonView();
+  applyReaderSettings();
 }
 
 function render() {
-  renderBookCover();
-  renderBooks();
-  renderChapters();
-
   if (state.query.trim()) {
-    renderSearchView();
+    renderSearch();
     return;
   }
-
-  if (state.view === "sermon") {
-    renderSermonView();
-  } else {
-    renderChapterView();
-  }
+  const route = getRoute();
+  if (route.view === "book") return renderBook(route.bookId);
+  if (route.view === "chapter") return renderChapter(route.bookId, route.chapterNumber);
+  if (route.view === "sermon") return renderSermon(route.sermonId);
+  return renderHome();
 }
 
 elements.searchInput.addEventListener("input", (event) => {
@@ -418,14 +433,21 @@ elements.searchInput.addEventListener("input", (event) => {
 });
 
 elements.themeToggle.addEventListener("click", () => {
-  const nextTheme = document.body.classList.contains("dark") ? "light" : "dark";
-  applyTheme(nextTheme);
+  applyTheme(document.body.classList.contains("dark") ? "light" : "dark");
 });
 
 elements.increaseFont.addEventListener("click", () => changeFont(1));
 elements.decreaseFont.addEventListener("click", () => changeFont(-1));
+window.addEventListener("hashchange", render);
+document.addEventListener("contextmenu", (event) => {
+  if (event.target.closest(".sermon-content")) event.preventDefault();
+});
+document.addEventListener("copy", (event) => {
+  if (event.target.closest && event.target.closest(".sermon-content")) event.preventDefault();
+});
 
-document.documentElement.style.setProperty("--reader-font-size", `${state.fontSize}px`);
-document.documentElement.style.setProperty("--reader-width", `${state.readerWidth}px`);
+document.body.classList.add("protect-copy");
+elements.year.textContent = new Date().getFullYear();
+applyReaderSettings();
 applyTheme(localStorage.getItem(storageKeys.theme) || "light");
 render();

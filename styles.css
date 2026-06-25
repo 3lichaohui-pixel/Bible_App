@@ -1,11 +1,11 @@
 ﻿:root {
   color-scheme: light;
-  --page: #f6f4ef;
+  --bg: #f6f4ef;
   --paper: #fffdfa;
   --panel: #ffffff;
   --panel-soft: #f0f5f2;
   --ink: #202824;
-  --muted: #6b756f;
+  --muted: #69746e;
   --line: #ded9cf;
   --accent: #2f6f62;
   --accent-deep: #204e45;
@@ -18,7 +18,7 @@
 
 body.dark {
   color-scheme: dark;
-  --page: #111614;
+  --bg: #111614;
   --paper: #1a211f;
   --panel: #1f2825;
   --panel-soft: #26332f;
@@ -39,11 +39,14 @@ body.dark {
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(47, 111, 98, 0.08), transparent 260px),
-    var(--page);
+  background: linear-gradient(180deg, rgba(47, 111, 98, 0.08), transparent 260px), var(--bg);
   color: var(--ink);
   font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+}
+
+body.protect-copy .sermon-content {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 button,
@@ -55,49 +58,44 @@ button {
   cursor: pointer;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .site-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 30px clamp(18px, 5vw, 64px) 24px;
+  padding: 24px clamp(18px, 5vw, 64px);
   border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
 }
 
-.site-title {
+.brand {
   display: grid;
-  gap: 6px;
+  gap: 5px;
 }
 
-.eyebrow,
-.site-title h1,
-.site-title p,
-.book-cover p,
-.chapter-heading p,
-.sermon-meta p,
-.empty-state {
-  margin: 0;
-}
-
-.eyebrow {
+.brand-kicker {
   color: var(--accent);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
+}
+
+.brand-title {
+  font-size: clamp(30px, 5vw, 50px);
+  font-weight: 900;
   letter-spacing: 0;
 }
 
-.site-title h1 {
-  font-size: clamp(32px, 5vw, 52px);
-  letter-spacing: 0;
-}
-
-.site-title p {
+.brand-subtitle {
   color: var(--muted);
   font-size: 16px;
 }
 
-.header-actions {
+.top-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -106,8 +104,8 @@ button {
 
 .tool-button,
 .action-button,
-.book-button,
-.chapter-button,
+.book-card,
+.chapter-card,
 .sermon-card,
 .result-card {
   border: 1px solid var(--line);
@@ -121,152 +119,49 @@ button {
   min-width: 44px;
   min-height: 40px;
   padding: 8px 11px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .tool-button:hover,
 .action-button:hover,
-.book-button:hover,
-.chapter-button:hover,
+.book-card:hover,
+.chapter-card:hover,
 .sermon-card:hover,
 .result-card:hover {
   border-color: var(--accent);
   transform: translateY(-1px);
 }
 
-.library-shell {
-  display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 24px;
-  width: min(1400px, calc(100% - 32px));
+.app-main {
+  width: min(1120px, calc(100% - 32px));
   margin: 24px auto 40px;
 }
 
-.library-nav {
-  position: sticky;
-  top: 16px;
-  align-self: start;
-  display: grid;
-  gap: 18px;
-}
-
-.nav-section,
-.book-cover,
-.content-view {
+.search-panel,
+.content-view,
+.book-cover {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--paper);
   box-shadow: var(--shadow);
 }
 
-.nav-section {
-  padding: 18px;
-}
-
-.section-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.section-label {
-  margin-bottom: 12px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.chapter-total {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.book-list,
-.chapter-list,
-.sermon-list,
-.result-list {
-  display: grid;
-  gap: 8px;
-}
-
-.book-button,
-.chapter-button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  padding: 12px 13px;
-  text-align: left;
-  font-weight: 900;
-}
-
-.book-button.active,
-.chapter-button.active,
-.action-button.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-deep);
-}
-
-.count {
-  min-width: 38px;
-  border-radius: 999px;
-  background: var(--panel-soft);
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.workspace {
-  min-width: 0;
-}
-
-.book-cover {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 18px;
-  padding: clamp(22px, 4vw, 38px);
-}
-
-.book-cover h2 {
-  margin: 0;
-  font-size: clamp(28px, 4vw, 44px);
-  letter-spacing: 0;
-}
-
-.book-cover .author {
-  color: var(--ink);
-  font-weight: 800;
-}
-
-.book-cover .description {
-  color: var(--muted);
-}
-
-.search-bar {
+.search-panel {
   display: grid;
   grid-template-columns: auto minmax(180px, 1fr);
   align-items: center;
   gap: 12px;
   margin-bottom: 18px;
   padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  box-shadow: var(--shadow);
 }
 
-.search-bar label {
+.search-panel label {
   color: var(--muted);
   font-size: 14px;
   font-weight: 900;
 }
 
-.search-bar input {
+.search-panel input {
   width: 100%;
   border: 0;
   outline: 0;
@@ -280,43 +175,117 @@ button {
 }
 
 .breadcrumb {
-  margin-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
   color: var(--accent);
   font-size: 14px;
   font-weight: 900;
 }
 
-.chapter-heading {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 24px;
+.breadcrumb a {
+  border-bottom: 1px solid transparent;
 }
 
-.chapter-heading h2,
-.search-heading h2,
-.sermon-title-block h2 {
+.breadcrumb a:hover {
+  border-color: var(--accent);
+}
+
+.hero,
+.book-cover,
+.section-heading,
+.sermon-title-block,
+.search-heading {
+  display: grid;
+  gap: 10px;
+}
+
+.hero {
+  margin-bottom: 26px;
+}
+
+.hero h1,
+.book-cover h1,
+.section-heading h1,
+.search-heading h1,
+.sermon-title-block h1 {
   margin: 0;
-  font-size: clamp(28px, 4vw, 42px);
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.18;
   letter-spacing: 0;
 }
 
-.meta-line,
+.hero p,
+.book-cover p,
+.section-heading p,
+.search-heading p,
 .sermon-meta,
 .source-note,
 .empty-state {
+  margin: 0;
   color: var(--muted);
   font-size: 14px;
 }
 
+.book-cover {
+  margin-bottom: 24px;
+  padding: clamp(20px, 4vw, 34px);
+}
+
+.book-cover .author {
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.grid-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.book-card,
+.chapter-card,
 .sermon-card,
 .result-card {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 6px 12px;
+  gap: 8px;
   width: 100%;
+  min-height: 96px;
   padding: 16px;
-  background: var(--panel-soft);
   text-align: left;
+}
+
+.book-card,
+.chapter-card {
+  background: var(--panel-soft);
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.count-pill {
+  width: fit-content;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  padding: 3px 10px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.sermon-list,
+.result-list {
+  display: grid;
+  gap: 10px;
+}
+
+.sermon-card,
+.result-card {
+  grid-template-columns: auto 1fr;
+  background: var(--panel-soft);
 }
 
 .sermon-number {
@@ -326,10 +295,9 @@ button {
   font-weight: 900;
 }
 
-.sermon-card-title,
-.result-card-title {
+.sermon-card .card-title,
+.result-card .card-title {
   font-size: 17px;
-  font-weight: 900;
 }
 
 .source-note,
@@ -349,8 +317,6 @@ button {
 }
 
 .sermon-title-block {
-  display: grid;
-  gap: 10px;
   padding-bottom: 18px;
   border-bottom: 1px solid var(--line);
 }
@@ -385,10 +351,21 @@ button {
   font-weight: 900;
 }
 
+.action-button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
 .action-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
   transform: none;
+}
+
+.share-status {
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .sermon-content {
@@ -415,41 +392,34 @@ button {
   padding: 0 2px;
 }
 
-.search-heading {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 22px;
+.site-footer {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto 32px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: center;
 }
 
-@media (max-width: 920px) {
-  .library-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .library-nav {
-    position: static;
-  }
-
-  .chapter-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 560px) {
+@media (max-width: 720px) {
   .site-header {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .header-actions {
+  .top-actions {
     justify-content: flex-start;
   }
 
-  .chapter-list {
+  .search-panel {
     grid-template-columns: 1fr;
   }
 
-  .search-bar {
+  .content-view {
+    min-height: 520px;
+  }
+
+  .grid-list {
     grid-template-columns: 1fr;
   }
 
